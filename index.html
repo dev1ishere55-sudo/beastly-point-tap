@@ -5,38 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Beastly Point Tap — Too Jacked To Rug</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0c;
-    --bg-card: #16161a;
-    --gold: #f5c518;
-    --text: #f4f4f5;
-    --muted: #a1a1aa;
-    --border: #27272a;
-    --success: #22c55e;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-  .hidden { display: none !important; }
-  #landing { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245,197,24,0.18), transparent); }
-  h1.brand { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 10vw, 80px); line-height: 0.9; }
-  h1.brand span { color: var(--gold); }
-  .tagline { color: var(--muted); max-width: 420px; margin: 16px auto 32px; }
-  .wallet-btn { padding: 16px 28px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-weight: 700; cursor: pointer; margin: 8px; }
-  #app { max-width: 480px; margin: 0 auto; padding: 20px; }
-  .tapper { width: 200px; height: 200px; border-radius: 50%; border: 4px solid var(--gold); background: #111; cursor: pointer; font-size: 80px; margin: 20px auto; display: block; }
-  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin: 16px 0; }
-  .contest { background: #1a1208; border: 1px solid var(--gold); border-radius: 12px; padding: 16px; margin-top: 20px; font-size: 14px; }
-  .contest h3 { color: var(--gold); margin-bottom: 8px; }
+:root{--bg:#0a0a0c;--bg-card:#16161a;--gold:#f5c518;--text:#f4f4f5;--muted:#a1a1aa;--border:#27272a;--success:#22c55e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.hidden{display:none!important}
+#landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(245,197,24,.18),transparent)}
+h1.brand{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,12vw,96px);letter-spacing:2px;line-height:.9}
+h1.brand span{color:var(--gold)}
+.tagline{font-size:18px;color:var(--muted);max-width:420px;margin:16px auto 32px}
+.wallet-grid{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.wallet-btn{display:flex;align-items:center;gap:10px;padding:14px 24px;border-radius:14px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-weight:700;cursor:pointer;transition:.2s}
+.wallet-btn:hover{border-color:var(--gold);transform:translateY(-2px)}
+.contest{background:#1a1208;border:1px solid var(--gold);border-radius:14px;padding:16px;margin-top:24px;max-width:420px;font-size:14px}
+.contest h3{color:var(--gold);margin-bottom:6px;font-family:'Bebas Neue',sans-serif;font-size:22px}
+#app{max-width:480px;margin:0 auto;padding:20px 16px 40px}
+.app-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.wallet-pill{background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--success)}
+.tapper{width:220px;height:220px;border-radius:50%;border:4px solid var(--gold);background:radial-gradient(circle at 30% 30%,#2a2a2e,#111);cursor:pointer;font-size:100px;margin:20px auto;display:grid;place-items:center;box-shadow:0 0 0 8px rgba(245,197,24,.1)}
+.tapper:active{transform:scale(.94)}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
+.bar{height:8px;background:#27272a;border-radius:4px;overflow:hidden;margin:6px 0 12px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#e67e22);border-radius:4px}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);margin:20px 0 10px}
+.upgrade{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.cost-btn{background:var(--gold);color:#111;border:none;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
+.cost-btn:disabled{background:#3f3f46;color:#71717a;cursor:not-allowed}
+.cta{background:var(--gold);color:#111;border:none;border-radius:12px;padding:12px 20px;font-weight:700;cursor:pointer;width:100%}
 </style>
 </head>
 <body>
 <div id="landing">
   <h1 class="brand">BEASTLY<br><span>POINT TAP</span></h1>
   <p class="tagline">Too Jacked To Rug. Connect your wallet and start flexing.</p>
-  <button class="wallet-btn" onclick="enter()">Connect Wallet & Enter</button>
+  <div class="wallet-grid">
+    <button class="wallet-btn" onclick="connect('phantom')">👻 Connect Phantom</button>
+    <button class="wallet-btn" onclick="connect('solflare')">🔥 Connect Solflare</button>
+  </div>
   <div class="contest">
     <h3>🐓 CHICKENBEAST MEME CONTEST</h3>
     <p>Oct 19–24 · $60 prize pool · Quality over quantity</p>
@@ -44,19 +51,45 @@
   </div>
 </div>
 <div id="app" class="hidden">
-  <h2 style="font-family:Bebas Neue,sans-serif;font-size:36px;text-align:center">TOO JACKED <span style="color:var(--gold)">TO RUG</span></h2>
-  <button class="tapper" onclick="tap()">🐓</button>
-  <div class="card">
-    <strong>Rank: Scrawny Chick</strong>
-    <div style="height:8px;background:#27272a;border-radius:4px;margin:8px 0"><div id="bar" style="width:0%;height:100%;background:var(--gold);border-radius:4px"></div></div>
-    <p id="pts">0 BP</p>
+  <div class="app-header">
+    <div class="wallet-pill"><span class="dot"></span><span id="walletAddr">Connected</span></div>
+    <button onclick="location.reload()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px">Disconnect</button>
   </div>
-  <button onclick="location.reload()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;cursor:pointer">Disconnect</button>
+  <h2 style="font-family:Bebas Neue,sans-serif;font-size:36px;text-align:center">TOO JACKED <span style="color:var(--gold)">TO RUG</span></h2>
+  <button class="tapper" id="tapper" onclick="tap()">🐓</button>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;font-size:14px"><strong id="rankName">Rank: Scrawny Chick</strong><span id="rankProgress">0 / 10,000</span></div>
+    <div class="bar"><i id="rankBar" style="width:0%"></i></div>
+    <div style="display:flex;justify-content:space-between;font-size:14px"><strong>Stamina</strong><span id="staminaText">1000 / 1000</span></div>
+    <div class="bar"><i id="staminaBar" style="width:100%"></i></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><span>🥚 Coop · <span id="passiveRate">75</span> BP/hr</span><button class="cost-btn" id="btnClaim" onclick="claim()">Collect 0 BP</button></div>
+  </div>
+  <div class="section-title">UPGRADES</div>
+  <div class="card" id="upgrades"></div>
+  <div class="card" style="text-align:center">
+    <span style="font-size:12px;color:var(--muted)">CONTRACT ADDRESS</span>
+    <code style="display:block;background:#111;padding:10px;border-radius:8px;font-size:11px;word-break:break-all;margin:8px 0;color:var(--muted)">GBFHyayakxkcTWUXHEJKTnWY82f5C8MpoRzB6YBopump</code>
+    <button class="cta" onclick="navigator.clipboard.writeText('GBFHyayakxkcTWUXHEJKTnWY82f5C8MpoRzB6YBopump').then(()=>this.textContent='Copied!')">Copy address</button>
+  </div>
 </div>
 <script>
-function enter(){document.getElementById('landing').classList.add('hidden');document.getElementById('app').classList.remove('hidden')}
-let p=0;
-function tap(){p+=1;document.getElementById('pts').textContent=p+' BP';document.getElementById('bar').style.width=Math.min(100,p/100)+'%'}
+const RANKS=[{name:'Scrawny Chick',min:0},{name:'Barnyard Broiler',min:10000},{name:'Free-Range Chad',min:100000},{name:'Giga-Rooster',min:1000000},{name:'Apex Beast',min:10000000}];
+let state={points:0,total_mined:0,tap_power:1,stamina:1000,stamina_capacity:1000,last_stamina:Date.now(),passive_rate:75,last_incubation:Date.now(),frenzy_until:0,boost_until:0,wallet:null,walletType:null};
+function load(){try{const s=localStorage.getItem('cb_state');if(s)Object.assign(state,JSON.parse(s))}catch{}}
+function save(){localStorage.setItem('cb_state',JSON.stringify(state))}
+load();
+async function connect(type){let p=type==='phantom'?window.solana:window.solflare;if(!p){window.open(type==='phantom'?'https://phantom.app/':'https://solflare.com/','_blank');return}try{const r=await p.connect();const k=r.publicKey.toString();state.wallet=k;state.walletType=type==='phantom'?'Phantom':'Solflare';state.display_name=k.slice(0,4)+'…'+k.slice(-4);save();enter()}catch(e){alert('Connection failed')}}
+function enter(){document.getElementById('landing').classList.add('hidden');document.getElementById('app').classList.remove('hidden');document.getElementById('walletAddr').textContent=(state.walletType||'')+' · '+(state.display_name||'Beast');render();setInterval(()=>{state.stamina=Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800));state.last_stamina=Date.now();render()},1000)}
+function staminaNow(){return Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800))}
+function incubationNow(){return Math.min(state.passive_rate*8,Math.floor((Date.now()-state.last_incubation)/3600000*state.passive_rate))}
+function multiplier(){const n=Date.now();return (n<state.frenzy_until?2:1)*(n<state.boost_until?2:1)}
+function rankFor(t){let r=RANKS[0];for(const x of RANKS)if(t>=x.min)r=x;return r}
+function upgradeCost(a){if(a==='whey')return Math.floor(50*Math.pow(1.35,state.tap_power-1));if(a==='creatine')return Math.floor(200*Math.pow(1.4,(state.passive_rate-75)/25));if(a==='preworkout')return Math.floor(150*Math.pow(1.45,(state.stamina_capacity-1000)/250));if(a==='boost')return state.tap_power*350;return 0}
+function tap(){const e=staminaNow();if(e<1)return;const m=multiplier();const g=state.tap_power*m;state.points+=g;state.total_mined+=g;state.stamina=e-1;state.last_stamina=Date.now();if(!state._taps)state._taps=[];state._taps.push(Date.now());state._taps=state._taps.filter(t=>Date.now()-t<8000);if(state._taps.length>=12&&Date.now()>=state.frenzy_until)state.frenzy_until=Date.now()+8000;save();render()}
+function action(a){const c=upgradeCost(a);if(state.points<c)return;state.points-=c;if(a==='whey')state.tap_power++;if(a==='creatine')state.passive_rate+=25;if(a==='preworkout')state.stamina_capacity+=250;if(a==='boost')state.boost_until=Date.now()+600000;save();render()}
+function claim(){const e=incubationNow();if(e<1)return;state.points+=e;state.total_mined+=e;state.last_incubation=Date.now();save();render()}
+function render(){const r=rankFor(state.total_mined);const n=RANKS.find(x=>x.min>state.total_mined);document.getElementById('rankName').textContent='Rank: '+r.name;document.getElementById('rankProgress').textContent=state.total_mined.toLocaleString()+' / '+(n?n.min.toLocaleString():'MAX');document.getElementById('rankBar').style.width=(n?Math.min(100,((state.total_mined-r.min)/(n.min-r.min))*100):100)+'%';const e=staminaNow();document.getElementById('staminaText').textContent=Math.floor(e).toLocaleString()+' / '+state.stamina_capacity.toLocaleString();document.getElementById('staminaBar').style.width=(e/state.stamina_capacity*100)+'%';document.getElementById('passiveRate').textContent=state.passive_rate;const eggs=incubationNow();document.getElementById('btnClaim').textContent='Collect '+eggs.toLocaleString()+' BP';document.getElementById('btnClaim').disabled=eggs<1;const ups=[{a:'whey',emoji:'🌽',name:'Whey Corn',sub:'More power. Every single rep.',level:state.tap_power},{a:'creatine',emoji:'🥚',name:'Creatine Coop',sub:'Gains while you’re off the grid.',level:Math.floor((state.passive_rate-75)/25)+1},{a:'preworkout',emoji:'⚡',name:'Pre-Workout Cluck',sub:'Bigger tank. Faster recovery.',level:Math.floor((state.stamina_capacity-1000)/250)+1}];document.getElementById('upgrades').innerHTML=ups.map(u=>{const c=upgradeCost(u.a);return`<div class="upgrade"><div style="font-size:28px;width:40px;text-align:center">${u.emoji}</div><div style="flex:1"><h3 style="font-size:15px">${u.name} <span style="color:var(--gold);font-size:12px">LVL ${u.level}</span></h3><p style="font-size:12px;color:var(--muted)">${u.sub}</p></div><button class="cost-btn" ${state.points<c?'disabled':''} onclick="action('${u.a}')">${c.toLocaleString()} BP</button></div>`}).join('')+`<div class="upgrade"><div style="font-size:28px;width:40px;text-align:center">🔥</div><div style="flex:1"><h3 style="font-size:15px">Mega Flex ${Date.now()<state.boost_until?'<span style="color:var(--gold);font-size:12px">ACTIVE</span>':''}</h3><p style="font-size:12px;color:var(--muted)">Double earnings for ten minutes.</p></div><button class="cost-btn" ${state.points<upgradeCost('boost')||Date.now()<state.boost_until?'disabled':''} onclick="action('boost')">${upgradeCost('boost').toLocaleString()} BP</button></div>`}
+if(state.wallet)enter();
 </script>
 </body>
 </html>
