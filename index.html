@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beastly Point Tap — Too Jacked To Rug</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0c;--bg-card:#16161a;--gold:#f5c518;--text:#f4f4f5;--muted:#a1a1aa;--border:#27272a;--success:#22c55e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.hidden{display:none!important}
+#landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(245,197,24,.18),transparent)}
+h1.brand{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,10vw,80px);line-height:.9}
+h1.brand span{color:var(--gold)}
+.tagline{color:var(--muted);max-width:420px;margin:16px auto 32px}
+.wallet-btn{padding:16px 28px;border-radius:14px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-weight:700;cursor:pointer;margin:8px}
+#app{max-width:480px;margin:0 auto;padding:20px}
+.tapper{width:200px;height:200px;border-radius:50%;border:4px solid var(--gold);background:#111;cursor:pointer;font-size:80px;margin:20px auto;display:block}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:16px;margin:16px 0}
+</style>
+</head>
+<body>
+<div id="landing">
+  <h1 class="brand">BEASTLY<br><span>POINT TAP</span></h1>
+  <p class="tagline">Too Jacked To Rug. Connect your wallet and start flexing.</p>
+  <button class="wallet-btn" onclick="enter()">Connect Wallet & Enter</button>
+  <p style="color:var(--muted);font-size:13px;margin-top:20px">Full source in this repo. See DEPLOYMENT.md to enable Supabase.</p>
+</div>
+<div id="app" class="hidden">
+  <h2 style="font-family:Bebas Neue,sans-serif;font-size:36px;text-align:center">TOO JACKED <span style="color:var(--gold)">TO RUG</span></h2>
+  <button class="tapper" onclick="tap()">🐓</button>
+  <div class="card">
+    <strong>Rank: Scrawny Chick</strong>
+    <div style="height:8px;background:#27272a;border-radius:4px;margin:8px 0"><div id="bar" style="width:0%;height:100%;background:var(--gold);border-radius:4px"></div></div>
+    <p id="pts">0 BP</p>
+  </div>
+  <button onclick="location.reload()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;cursor:pointer">Disconnect</button>
+</div>
+<script>
+function enter(){document.getElementById('landing').classList.add('hidden');document.getElementById('app').classList.remove('hidden')}
+let p=0;
+function tap(){p+=1;document.getElementById('pts').textContent=p+' BP';document.getElementById('bar').style.width=Math.min(100,p/100)+'%'}
+</script>
+</body>
+</html>
