@@ -2,39 +2,57 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Beastly Point Tap — Too Jacked To Rug</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0a0c;--bg-card:#16161a;--gold:#f5c518;--text:#f4f4f5;--muted:#a1a1aa;--border:#27272a;--success:#22c55e}
+:root{--bg:#07070a;--bg-card:#121216;--gold:#f5c518;--gold-dim:#c9a014;--text:#f8f8f9;--muted:#a1a1aa;--border:#2a2a30;--success:#22c55e;--radius:16px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 .hidden{display:none!important}
-#landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(245,197,24,.18),transparent)}
-h1.brand{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,12vw,96px);letter-spacing:2px;line-height:.9}
-h1.brand span{color:var(--gold)}
-.tagline{font-size:18px;color:var(--muted);max-width:420px;margin:16px auto 32px}
-.signup{display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;max-width:320px}
-.signup input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:16px}
-.cta{background:var(--gold);color:#111;border:none;border-radius:12px;padding:14px 24px;font-weight:700;cursor:pointer;width:100%;font-size:16px}
-.cta:hover{filter:brightness(1.05)}
-.contest{background:#1a1208;border:1px solid var(--gold);border-radius:14px;padding:16px;margin-top:24px;max-width:420px;font-size:14px}
-.contest h3{color:var(--gold);margin-bottom:6px;font-family:'Bebas Neue',sans-serif;font-size:22px}
-#app{max-width:480px;margin:0 auto;padding:20px 16px 40px}
-.app-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.user-pill{background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--success)}
-.tapper{width:220px;height:220px;border-radius:50%;border:4px solid var(--gold);background:radial-gradient(circle at 30% 30%,#2a2a2e,#111);cursor:pointer;font-size:100px;margin:20px auto;display:grid;place-items:center;box-shadow:0 0 0 8px rgba(245,197,24,.1)}
-.tapper:active{transform:scale(.94)}
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
-.bar{height:8px;background:#27272a;border-radius:4px;overflow:hidden;margin:6px 0 12px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#e67e22);border-radius:4px}
-.section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);margin:20px 0 10px}
+#landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;text-align:center;background:radial-gradient(ellipse 90% 60% at 50% -20%,rgba(245,197,24,.22),transparent 60%),radial-gradient(ellipse 50% 40% at 100% 100%,rgba(245,197,24,.08),transparent)}
+h1.brand{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,14vw,104px);letter-spacing:1px;line-height:.88;text-shadow:0 4px 24px rgba(0,0,0,.5)}
+h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tagline{font-size:17px;color:var(--muted);max-width:380px;margin:18px auto 36px;line-height:1.45}
+.signup{display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px}
+.signup input{width:100%;padding:16px 18px;border-radius:14px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:16px;outline:none}
+.signup input:focus{border-color:var(--gold)}
+.cta{background:linear-gradient(180deg,#ffe566,var(--gold));color:#111;border:none;border-radius:14px;padding:16px 24px;font-weight:800;cursor:pointer;width:100%;font-size:16px;box-shadow:0 8px 24px rgba(245,197,24,.25);transition:.15s}
+.cta:active{transform:scale(.98)}
+.contest{background:linear-gradient(180deg,#1a1408,#12100a);border:1px solid rgba(245,197,24,.4);border-radius:var(--radius);padding:18px;margin-top:28px;max-width:400px;font-size:13.5px;line-height:1.5}
+.contest h3{color:var(--gold);margin-bottom:8px;font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.5px}
+#app{max-width:480px;margin:0 auto;padding:16px 16px 48px}
+.app-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.user-pill{background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success)}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:42px;text-align:center;letter-spacing:1px;margin:8px 0 4px}
+.hero-title span{color:var(--gold)}
+.sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:8px}
+.tapper-wrap{display:flex;justify-content:center;margin:16px 0 20px;position:relative}
+.tapper{width:210px;height:210px;border-radius:50%;border:5px solid var(--gold);background:radial-gradient(circle at 35% 30%,#2e2e34,#0d0d10);cursor:pointer;font-size:96px;display:grid;place-items:center;box-shadow:0 0 0 10px rgba(245,197,24,.12),0 20px 40px rgba(0,0,0,.6);transition:transform .08s;user-select:none;-webkit-tap-highlight-color:transparent}
+.tapper:active{transform:scale(.93)}
+.tapper.frenzy{border-color:#ff6b00;box-shadow:0 0 0 10px rgba(255,107,0,.3),0 0 30px rgba(255,107,0,.5);animation:pulse .5s infinite}
+@keyframes pulse{50%{transform:scale(1.03)}}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.meter-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px}
+.bar{height:9px;background:#27272c;border-radius:5px;overflow:hidden;margin:4px 0 12px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#e67e22);border-radius:5px;transition:width .25s}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);margin:18px 0 10px;letter-spacing:.5px}
 .upgrade{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-.cost-btn{background:var(--gold);color:#111;border:none;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
+.upgrade:last-child{border-bottom:none}
+.cost-btn{background:var(--gold);color:#111;border:none;border-radius:10px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:13px}
 .cost-btn:disabled{background:#3f3f46;color:#71717a;cursor:not-allowed}
+.lb-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{width:28px;font-weight:800;color:var(--gold)}
+.lb-name{flex:1;font-weight:600}
+.lb-score{font-variant-numeric:tabular-nums;color:var(--muted)}
+.tabs{display:flex;gap:8px;margin-bottom:10px}
+.tab{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-weight:600;cursor:pointer;font-size:13px}
+.tab.active{background:var(--gold);color:#111;border-color:var(--gold)}
+.share-btn{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
 </style>
 </head>
 <body>
@@ -48,7 +66,7 @@ h1.brand span{color:var(--gold)}
   <div class="contest">
     <h3>🐓 CHICKENBEAST MEME CONTEST</h3>
     <p>Oct 19–24 · $60 prize pool · Quality over quantity</p>
-    <p>Post in the MEME CONTEST Telegram topic. Max 5/day. Label your category.</p>
+    <p>Post in the MEME CONTEST topic. Max 5/day. Label your category.</p>
   </div>
 </div>
 <div id="app" class="hidden">
@@ -56,82 +74,79 @@ h1.brand span{color:var(--gold)}
     <div class="user-pill"><span class="dot"></span><span id="userLabel">Beast</span></div>
     <button onclick="logout()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px">Leave</button>
   </div>
-  <h2 style="font-family:Bebas Neue,sans-serif;font-size:36px;text-align:center">TOO JACKED <span style="color:var(--gold)">TO RUG</span></h2>
-  <button class="tapper" id="tapper" onclick="tap()">🐓</button>
+  <div class="hero-title">TOO JACKED <span>TO RUG</span></div>
+  <p class="sub" id="welcomeText">Your gains are live.</p>
+  <div class="tapper-wrap">
+    <button class="tapper" id="tapper" onclick="tap()">🐓</button>
+  </div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;font-size:14px"><strong id="rankName">Rank: Scrawny Chick</strong><span id="rankProgress">0 / 10,000</span></div>
+    <div class="meter-row"><strong id="rankName">Rank: Scrawny Chick</strong><span id="rankProgress">0 / 10,000</span></div>
     <div class="bar"><i id="rankBar" style="width:0%"></i></div>
-    <div style="display:flex;justify-content:space-between;font-size:14px"><strong>Stamina</strong><span id="staminaText">1000 / 1000</span></div>
+    <div class="meter-row"><strong>Stamina</strong><span id="staminaText">1000 / 1000</span></div>
     <div class="bar"><i id="staminaBar" style="width:100%"></i></div>
-    <div style="display:flex;justify-content:space-between;align-items:center"><span>🥚 Coop · <span id="passiveRate">75</span> BP/hr</span><button class="cost-btn" id="btnClaim" onclick="claim()">Collect 0 BP</button></div>
+    <div class="meter-row" style="margin-bottom:0"><span>🥚 Coop · <span id="passiveRate">75</span> BP/hr</span><button class="cost-btn" id="btnClaim" onclick="claim()">Collect 0 BP</button></div>
   </div>
   <div class="section-title">UPGRADES</div>
   <div class="card" id="upgrades"></div>
+  <div class="section-title">LEADERBOARD</div>
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" id="tabPersonal" onclick="showTab('personal')">Personal</button>
+      <button class="tab" id="tabCommunity" onclick="showTab('community')">Community</button>
+    </div>
+    <div id="lbPersonal"></div>
+    <div id="lbCommunity" class="hidden"></div>
+    <button class="share-btn" onclick="shareScore()">Share my score</button>
+  </div>
   <div class="card" style="text-align:center">
     <span style="font-size:12px;color:var(--muted)">CONTRACT ADDRESS</span>
-    <code style="display:block;background:#111;padding:10px;border-radius:8px;font-size:11px;word-break:break-all;margin:8px 0;color:var(--muted)">GBFHyayakxkcTWUXHEJKTnWY82f5C8MpoRzB6YBopump</code>
+    <code style="display:block;background:#0d0d10;padding:10px;border-radius:8px;font-size:11px;word-break:break-all;margin:8px 0;color:var(--muted)">GBFHyayakxkcTWUXHEJKTnWY82f5C8MpoRzB6YBopump</code>
     <button class="cta" onclick="navigator.clipboard.writeText('GBFHyayakxkcTWUXHEJKTnWY82f5C8MpoRzB6YBopump').then(()=>this.textContent='Copied!')">Copy address</button>
   </div>
 </div>
 <script>
 const RANKS=[{name:'Scrawny Chick',min:0},{name:'Barnyard Broiler',min:10000},{name:'Free-Range Chad',min:100000},{name:'Giga-Rooster',min:1000000},{name:'Apex Beast',min:10000000}];
-let state={points:0,total_mined:0,tap_power:1,stamina:1000,stamina_capacity:1000,last_stamina:Date.now(),passive_rate:75,last_incubation:Date.now(),frenzy_until:0,boost_until:0,display_name:'',tg_id:null};
+const COMMUNITY=[{name:'Apex Beast',score:48200},{name:'Giga-Rooster',score:31500},{name:'Free-Range Chad',score:18900},{name:'Barnyard Broiler',score:9200},{name:'Scrawny Chick',score:4100}];
+let state={points:0,total_mined:0,tap_power:1,stamina:1000,stamina_capacity:1000,last_stamina:Date.now(),passive_rate:75,last_incubation:Date.now(),frenzy_until:0,boost_until:0,display_name:'',tg_id:null,best:0};
 function load(){try{const s=localStorage.getItem('cb_state');if(s)Object.assign(state,JSON.parse(s))}catch{}}
 function save(){localStorage.setItem('cb_state',JSON.stringify(state))}
 load();
-
 function signup(){
-  let name = (document.getElementById('nameInput').value||'').trim();
-  let tgId = null;
-  try {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      const u = tg.initDataUnsafe?.user;
-      if (u) {
-        name = u.first_name || u.username || name;
-        tgId = u.id;
-      }
-    }
-  } catch {}
-  if (!name) { alert('Enter a name'); return; }
-  state.display_name = name;
-  state.tg_id = tgId;
-  save();
-  enter();
+  let name=(document.getElementById('nameInput').value||'').trim();
+  let tgId=null;
+  try{const tg=window.Telegram?.WebApp;if(tg){tg.ready();tg.expand();const u=tg.initDataUnsafe?.user;if(u){name=u.first_name||u.username||name;tgId=u.id;}}}catch{}
+  if(!name){alert('Enter a name');return;}
+  state.display_name=name;state.tg_id=tgId;save();enter();
 }
-
 function enter(){
   document.getElementById('landing').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('userLabel').textContent = state.display_name || 'Beast';
-  render();
-  setInterval(()=>{
-    state.stamina=Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800));
-    state.last_stamina=Date.now();
-    render();
-  },1000);
+  document.getElementById('userLabel').textContent=state.display_name||'Beast';
+  document.getElementById('welcomeText').textContent='Welcome back, '+(state.display_name||'Beast')+'.';
+  render();renderLB();
+  setInterval(()=>{state.stamina=Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800));state.last_stamina=Date.now();render();},1000);
 }
-
-function logout(){
-  state.display_name='';
-  state.tg_id=null;
-  save();
-  location.reload();
-}
-
+function logout(){state.display_name='';state.tg_id=null;save();location.reload();}
 function staminaNow(){return Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800))}
 function incubationNow(){return Math.min(state.passive_rate*8,Math.floor((Date.now()-state.last_incubation)/3600000*state.passive_rate))}
 function multiplier(){const n=Date.now();return (n<state.frenzy_until?2:1)*(n<state.boost_until?2:1)}
 function rankFor(t){let r=RANKS[0];for(const x of RANKS)if(t>=x.min)r=x;return r}
 function upgradeCost(a){if(a==='whey')return Math.floor(50*Math.pow(1.35,state.tap_power-1));if(a==='creatine')return Math.floor(200*Math.pow(1.4,(state.passive_rate-75)/25));if(a==='preworkout')return Math.floor(150*Math.pow(1.45,(state.stamina_capacity-1000)/250));if(a==='boost')return state.tap_power*350;return 0}
-function tap(){const e=staminaNow();if(e<1)return;const m=multiplier();const g=state.tap_power*m;state.points+=g;state.total_mined+=g;state.stamina=e-1;state.last_stamina=Date.now();if(!state._taps)state._taps=[];state._taps.push(Date.now());state._taps=state._taps.filter(t=>Date.now()-t<8000);if(state._taps.length>=12&&Date.now()>=state.frenzy_until)state.frenzy_until=Date.now()+8000;save();render()}
-function action(a){const c=upgradeCost(a);if(state.points<c)return;state.points-=c;if(a==='whey')state.tap_power++;if(a==='creatine')state.passive_rate+=25;if(a==='preworkout')state.stamina_capacity+=250;if(a==='boost')state.boost_until=Date.now()+600000;save();render()}
-function claim(){const e=incubationNow();if(e<1)return;state.points+=e;state.total_mined+=e;state.last_incubation=Date.now();save();render()}
+function tap(){
+  const e=staminaNow();if(e<1)return;
+  const m=multiplier();const g=state.tap_power*m;
+  state.points+=g;state.total_mined+=g;state.stamina=e-1;state.last_stamina=Date.now();
+  if(state.total_mined>state.best)state.best=state.total_mined;
+  if(!state._taps)state._taps=[];state._taps.push(Date.now());state._taps=state._taps.filter(t=>Date.now()-t<8000);
+  if(state._taps.length>=12&&Date.now()>=state.frenzy_until)state.frenzy_until=Date.now()+8000;
+  const btn=document.getElementById('tapper');
+  btn.classList.toggle('frenzy',Date.now()<state.frenzy_until||Date.now()<state.boost_until);
+  save();render();renderLB();
+}
+function action(a){const c=upgradeCost(a);if(state.points<c)return;state.points-=c;if(a==='whey')state.tap_power++;if(a==='creatine')state.passive_rate+=25;if(a==='preworkout')state.stamina_capacity+=250;if(a==='boost')state.boost_until=Date.now()+600000;save();render();}
+function claim(){const e=incubationNow();if(e<1)return;state.points+=e;state.total_mined+=e;if(state.total_mined>state.best)state.best=state.total_mined;state.last_incubation=Date.now();save();render();renderLB();}
 function render(){
-  const r=rankFor(state.total_mined);
-  const n=RANKS.find(x=>x.min>state.total_mined);
+  const r=rankFor(state.total_mined);const n=RANKS.find(x=>x.min>state.total_mined);
   document.getElementById('rankName').textContent='Rank: '+r.name;
   document.getElementById('rankProgress').textContent=state.total_mined.toLocaleString()+' / '+(n?n.min.toLocaleString():'MAX');
   document.getElementById('rankBar').style.width=(n?Math.min(100,((state.total_mined-r.min)/(n.min-r.min))*100):100)+'%';
@@ -145,13 +160,24 @@ function render(){
   const ups=[{a:'whey',emoji:'🌽',name:'Whey Corn',sub:'More power. Every single rep.',level:state.tap_power},{a:'creatine',emoji:'🥚',name:'Creatine Coop',sub:'Gains while you’re off the grid.',level:Math.floor((state.passive_rate-75)/25)+1},{a:'preworkout',emoji:'⚡',name:'Pre-Workout Cluck',sub:'Bigger tank. Faster recovery.',level:Math.floor((state.stamina_capacity-1000)/250)+1}];
   document.getElementById('upgrades').innerHTML=ups.map(u=>{const c=upgradeCost(u.a);return`<div class="upgrade"><div style="font-size:28px;width:40px;text-align:center">${u.emoji}</div><div style="flex:1"><h3 style="font-size:15px">${u.name} <span style="color:var(--gold);font-size:12px">LVL ${u.level}</span></h3><p style="font-size:12px;color:var(--muted)">${u.sub}</p></div><button class="cost-btn" ${state.points<c?'disabled':''} onclick="action('${u.a}')">${c.toLocaleString()} BP</button></div>`}).join('')+`<div class="upgrade"><div style="font-size:28px;width:40px;text-align:center">🔥</div><div style="flex:1"><h3 style="font-size:15px">Mega Flex ${Date.now()<state.boost_until?'<span style="color:var(--gold);font-size:12px">ACTIVE</span>':''}</h3><p style="font-size:12px;color:var(--muted)">Double earnings for ten minutes.</p></div><button class="cost-btn" ${state.points<upgradeCost('boost')||Date.now()<state.boost_until?'disabled':''} onclick="action('boost')">${upgradeCost('boost').toLocaleString()} BP</button></div>`;
 }
-
-// Auto-enter if already signed up, or auto-fill from Telegram
+function renderLB(){
+  const personal=[{name:state.display_name||'You',score:state.best||state.total_mined}];
+  document.getElementById('lbPersonal').innerHTML=personal.map((p,i)=>`<div class="lb-row"><span class="lb-rank">#${i+1}</span><span class="lb-name">${p.name}</span><span class="lb-score">${p.score.toLocaleString()} BP</span></div>`).join('');
+  document.getElementById('lbCommunity').innerHTML=COMMUNITY.map((p,i)=>`<div class="lb-row"><span class="lb-rank">#${i+1}</span><span class="lb-name">${p.name}</span><span class="lb-score">${p.score.toLocaleString()} BP</span></div>`).join('');
+}
+function showTab(t){
+  document.getElementById('tabPersonal').classList.toggle('active',t==='personal');
+  document.getElementById('tabCommunity').classList.toggle('active',t==='community');
+  document.getElementById('lbPersonal').classList.toggle('hidden',t!=='personal');
+  document.getElementById('lbCommunity').classList.toggle('hidden',t!=='community');
+}
+function shareScore(){
+  const text=`🐓 I just hit ${ (state.best||state.total_mined).toLocaleString() } BP on Beastly Point Tap! Too Jacked To Rug.`;
+  if(navigator.share)navigator.share({text}).catch(()=>{});
+  else navigator.clipboard.writeText(text).then(()=>alert('Score copied!'));
+}
 if(state.display_name){enter();}else{
-  try{
-    const tg=window.Telegram?.WebApp;
-    if(tg){tg.ready();const u=tg.initDataUnsafe?.user;if(u){document.getElementById('nameInput').value=u.first_name||u.username||'';}}
-  }catch{}
+  try{const tg=window.Telegram?.WebApp;if(tg){tg.ready();const u=tg.initDataUnsafe?.user;if(u){document.getElementById('nameInput').value=u.first_name||u.username||'';}}}catch{}
 }
 </script>
 </body>
