@@ -36,6 +36,7 @@ create table if not exists public.wallet_nonces (
 );
 
 create index if not exists wallet_nonces_user_idx on public.wallet_nonces (user_id);
+create index if not exists profiles_leaderboard_idx on public.profiles (total_mined desc) where leaderboard_opt_in = true;
 
 alter table public.profiles enable row level security;
 alter table public.wallet_nonces enable row level security;
@@ -43,6 +44,11 @@ alter table public.wallet_nonces enable row level security;
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own" on public.profiles
   for select using (auth.uid() = id);
+
+-- Public leaderboard: only opted-in profiles, limited columns via view or direct select
+drop policy if exists "profiles_leaderboard_public" on public.profiles;
+create policy "profiles_leaderboard_public" on public.profiles
+  for select using (leaderboard_opt_in = true);
 
 drop policy if exists "profiles_insert_own" on public.profiles;
 create policy "profiles_insert_own" on public.profiles
