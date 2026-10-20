@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Beastly Point Tap — Too Jacked To Rug</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -52,7 +53,8 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
 .tabs{display:flex;gap:8px;margin-bottom:10px}
 .tab{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-weight:600;cursor:pointer;font-size:13px}
 .tab.active{background:var(--gold);color:#111;border-color:var(--gold)}
-.share-btn{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
+.share-btn,.opt-row{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;display:flex;align-items:center;justify-content:space-between}
+.opt-row input{accent-color:var(--gold)}
 </style>
 </head>
 <body>
@@ -96,6 +98,7 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
     </div>
     <div id="lbPersonal"></div>
     <div id="lbCommunity" class="hidden"></div>
+    <label class="opt-row"><span>Show on community leaderboard</span><input type="checkbox" id="optIn" onchange="toggleOptIn(this.checked)"></label>
     <button class="share-btn" onclick="shareScore()">Share my score</button>
   </div>
   <div class="card" style="text-align:center">
@@ -105,12 +108,32 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
   </div>
 </div>
 <script>
+// Set these before loading, or leave blank for local-only mode
+window.SUPABASE_URL = window.SUPABASE_URL || '';
+window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
+const supabase = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase)
+  ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+  : null;
+
 const RANKS=[{name:'Scrawny Chick',min:0},{name:'Barnyard Broiler',min:10000},{name:'Free-Range Chad',min:100000},{name:'Giga-Rooster',min:1000000},{name:'Apex Beast',min:10000000}];
-const COMMUNITY=[{name:'Apex Beast',score:48200},{name:'Giga-Rooster',score:31500},{name:'Free-Range Chad',score:18900},{name:'Barnyard Broiler',score:9200},{name:'Scrawny Chick',score:4100}];
-let state={points:0,total_mined:0,tap_power:1,stamina:1000,stamina_capacity:1000,last_stamina:Date.now(),passive_rate:75,last_incubation:Date.now(),frenzy_until:0,boost_until:0,display_name:'',tg_id:null,best:0};
+let state={points:0,total_mined:0,tap_power:1,stamina:1000,stamina_capacity:1000,last_stamina:Date.now(),passive_rate:75,last_incubation:Date.now(),frenzy_until:0,boost_until:0,display_name:'',tg_id:null,best:0,leaderboard_opt_in:true,last_streak_claim:0};
 function load(){try{const s=localStorage.getItem('cb_state');if(s)Object.assign(state,JSON.parse(s))}catch{}}
 function save(){localStorage.setItem('cb_state',JSON.stringify(state))}
 load();
+
+async function loadCommunityLB(){
+  if(!supabase){
+    document.getElementById('lbCommunity').innerHTML='<p style="color:var(--muted);font-size:13px;padding:8px 0">Cloud leaderboard needs Supabase URL + anon key.</p>';
+    return;
+  }
+  const {data,error}=await supabase.from('profiles').select('display_name,total_mined').eq('leaderboard_opt_in',true).order('total_mined',{ascending:false}).limit(20);
+  if(error||!data){
+    document.getElementById('lbCommunity').innerHTML='<p style="color:var(--muted);font-size:13px;padding:8px 0">Could not load leaderboard.</p>';
+    return;
+  }
+  document.getElementById('lbCommunity').innerHTML=data.map((p,i)=>`<div class="lb-row"><span class="lb-rank">#${i+1}</span><span class="lb-name">${p.display_name||'Beast'}</span><span class="lb-score">${Number(p.total_mined||0).toLocaleString()} BP</span></div>`).join('')||'<p style="color:var(--muted);font-size:13px">No players yet.</p>';
+}
+
 function signup(){
   let name=(document.getElementById('nameInput').value||'').trim();
   let tgId=null;
@@ -123,10 +146,13 @@ function enter(){
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('userLabel').textContent=state.display_name||'Beast';
   document.getElementById('welcomeText').textContent='Welcome back, '+(state.display_name||'Beast')+'.';
+  document.getElementById('optIn').checked=!!state.leaderboard_opt_in;
   render();renderLB();
+  loadCommunityLB();
   setInterval(()=>{state.stamina=Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800));state.last_stamina=Date.now();render();},1000);
 }
 function logout(){state.display_name='';state.tg_id=null;save();location.reload();}
+function toggleOptIn(on){state.leaderboard_opt_in=on;save();/* TODO: sync to Supabase profile when auth is wired */}
 function staminaNow(){return Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800))}
 function incubationNow(){return Math.min(state.passive_rate*8,Math.floor((Date.now()-state.last_incubation)/3600000*state.passive_rate))}
 function multiplier(){const n=Date.now();return (n<state.frenzy_until?2:1)*(n<state.boost_until?2:1)}
@@ -163,13 +189,13 @@ function render(){
 function renderLB(){
   const personal=[{name:state.display_name||'You',score:state.best||state.total_mined}];
   document.getElementById('lbPersonal').innerHTML=personal.map((p,i)=>`<div class="lb-row"><span class="lb-rank">#${i+1}</span><span class="lb-name">${p.name}</span><span class="lb-score">${p.score.toLocaleString()} BP</span></div>`).join('');
-  document.getElementById('lbCommunity').innerHTML=COMMUNITY.map((p,i)=>`<div class="lb-row"><span class="lb-rank">#${i+1}</span><span class="lb-name">${p.name}</span><span class="lb-score">${p.score.toLocaleString()} BP</span></div>`).join('');
 }
 function showTab(t){
   document.getElementById('tabPersonal').classList.toggle('active',t==='personal');
   document.getElementById('tabCommunity').classList.toggle('active',t==='community');
   document.getElementById('lbPersonal').classList.toggle('hidden',t!=='personal');
   document.getElementById('lbCommunity').classList.toggle('hidden',t!=='community');
+  if(t==='community')loadCommunityLB();
 }
 function shareScore(){
   const text=`🐓 I just hit ${ (state.best||state.total_mined).toLocaleString() } BP on Beastly Point Tap! Too Jacked To Rug.`;
