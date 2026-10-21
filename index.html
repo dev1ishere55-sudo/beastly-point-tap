@@ -31,7 +31,8 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
 .tapper{width:210px;height:210px;border-radius:50%;border:5px solid var(--gold);background:radial-gradient(circle at 35% 30%,#2e2e34,#0d0d10);cursor:pointer;font-size:96px;display:grid;place-items:center;box-shadow:0 0 0 10px rgba(245,197,24,.12),0 20px 40px rgba(0,0,0,.6);transition:transform .08s;user-select:none;-webkit-tap-highlight-color:transparent}
 .tapper:active{transform:scale(.93)}
 .tapper.frenzy{border-color:#ff6b00;box-shadow:0 0 0 10px rgba(255,107,0,.3),0 0 30px rgba(255,107,0,.5);animation:pulse .5s infinite}
-@keyframes pulse{50%{transform:scale(1.03)}}
+.tapper.pump{border-color:#ff2d55;box-shadow:0 0 0 12px rgba(255,45,85,.4);animation:pulse .3s infinite}
+@keyframes pulse{50%{transform:scale(1.04)}}
 .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
 .meter-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px}
 .bar{height:9px;background:#27272c;border-radius:5px;overflow:hidden;margin:4px 0 12px}
@@ -60,6 +61,10 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
 .vault-ring{width:140px;height:140px;margin:0 auto 16px;position:relative}
 .vault-ring svg{transform:rotate(-90deg)}
 .vault-ring .label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700}
+.gym-card{background:linear-gradient(135deg,#1a1408,#0d0d10);border:1px solid var(--gold);border-radius:16px;padding:16px;text-align:center;margin:12px 0}
+.gym-card .rank{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold)}
+.pump-banner{background:linear-gradient(90deg,#ff2d55,#ff6b00);color:#fff;text-align:center;padding:8px;font-weight:700;border-radius:12px;margin-bottom:12px;display:none}
+.pump-banner.active{display:block}
 </style>
 </head>
 <body>
@@ -76,6 +81,7 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
     <div class="user-pill"><span class="dot"></span><span id="userLabel">Beast</span></div>
     <button onclick="logout()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px">Leave</button>
   </div>
+  <div id="pumpBanner" class="pump-banner">🔥 GLOBAL PUMP — 5× BP · INFINITE STAMINA</div>
   <div id="view-gym">
     <div class="hero-title">TOO JACKED <span>TO RUG</span></div>
     <div class="tapper-wrap">
@@ -114,8 +120,20 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
   <div id="view-crew" class="hidden">
     <div class="section-title">CREW</div>
     <div class="card">
-      <p style="font-size:14px;margin-bottom:12px">Share your gym card. Earn 10% of direct recruits' BP, 3% of theirs.</p>
-      <button class="share-btn" onclick="shareScore()">Share my score</button>
+      <div class="gym-card" id="gymCard">
+        <div style="font-size:48px" id="cardEmoji">🐓</div>
+        <div class="rank" id="cardRank">Scrawny Chick</div>
+        <div style="font-size:13px;color:var(--muted);margin:6px 0" id="cardScore">0 BP</div>
+        <div style="font-size:12px">Squad: <span id="cardSquad">None</span></div>
+      </div>
+      <button class="share-btn" onclick="shareCard()">Share Gym Card</button>
+      <div style="margin-top:16px">
+        <div class="section-title" style="margin-top:0">SQUADS</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:8px">Join or create a squad. Combined BP unlocks multipliers.</p>
+        <input id="squadInput" placeholder="Squad name" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);margin-bottom:8px">
+        <button class="cost-btn" onclick="joinSquad()" style="width:100%">Join / Create Squad</button>
+        <div id="squadInfo" style="margin-top:10px;font-size:13px"></div>
+      </div>
       <div style="margin-top:16px">
         <div class="section-title" style="margin-top:0">LEADERBOARD</div>
         <div id="lbCommunity" style="font-size:14px"></div>
@@ -137,14 +155,31 @@ window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
 const supabase = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase)
   ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
 
-const RANKS=[{name:'Scrawny Chick',min:0},{name:'Barnyard Broiler',min:10000},{name:'Free-Range Chad',min:100000},{name:'Giga-Rooster',min:1000000},{name:'Apex Beast',min:10000000}];
+const RANKS=[
+  {name:'Scrawny Chick',min:0,emoji:'🐣'},
+  {name:'Barnyard Broiler',min:10000,emoji:'🐓'},
+  {name:'Free-Range Chad',min:100000,emoji:'🐓'},
+  {name:'Giga-Rooster',min:1000000,emoji:'🐓'},
+  {name:'Apex Beast',min:10000000,emoji:'🐓'}
+];
 const STREAK_REWARDS=[500,1000,1500,2500,4000,6000,10000];
-let state={points:0,total_mined:0,tap_power:1,stamina:1000,stamina_capacity:1000,last_stamina:Date.now(),passive_rate:75,last_incubation:Date.now(),frenzy_until:0,boost_until:0,display_name:'',tg_id:null,best:0,leaderboard_opt_in:true,streak:0,last_streak_claim:0};
+let state={points:0,total_mined:0,tap_power:1,stamina:1000,stamina_capacity:1000,last_stamina:Date.now(),passive_rate:75,last_incubation:Date.now(),frenzy_until:0,boost_until:0,display_name:'',tg_id:null,best:0,leaderboard_opt_in:true,streak:0,last_streak_claim:0,squad:''};
+let pumpUntil=0;
 function load(){try{const s=localStorage.getItem('cb_state');if(s)Object.assign(state,JSON.parse(s))}catch{}}
 function save(){localStorage.setItem('cb_state',JSON.stringify(state))}
 load();
 
 function haptic(type='medium'){try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred(type)}catch{}}
+function isPump(){return Date.now()<pumpUntil;}
+function checkPump(){
+  const now=new Date();
+  const hour=now.getUTCHours();
+  // Global Pump window: 18:00-18:05 UTC daily
+  if(hour===18 && now.getUTCMinutes()<5){
+    pumpUntil=Date.now()+5*60*1000;
+  }
+}
+setInterval(checkPump,10000);checkPump();
 
 async function loadCommunityLB(){
   if(!supabase){document.getElementById('lbCommunity').innerHTML='<p style="color:var(--muted);font-size:13px">Cloud leaderboard needs keys.</p>';return;}
@@ -170,9 +205,9 @@ function enter(){
 }
 function logout(){state.display_name='';state.tg_id=null;save();location.reload();}
 function toggleOptIn(on){state.leaderboard_opt_in=on;save();}
-function staminaNow(){return Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800))}
+function staminaNow(){return isPump()?state.stamina_capacity:Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800));}
 function incubationNow(){return Math.min(state.passive_rate*8,Math.floor((Date.now()-state.last_incubation)/3600000*state.passive_rate))}
-function multiplier(){const n=Date.now();return (n<state.frenzy_until?2:1)*(n<state.boost_until?2:1)}
+function multiplier(){const n=Date.now();let m=(n<state.frenzy_until?2:1)*(n<state.boost_until?2:1);if(isPump())m*=5;return m;}
 function rankFor(t){let r=RANKS[0];for(const x of RANKS)if(t>=x.min)r=x;return r}
 function upgradeCost(a){if(a==='whey')return Math.floor(50*Math.pow(1.35,state.tap_power-1));if(a==='creatine')return Math.floor(200*Math.pow(1.4,(state.passive_rate-75)/25));if(a==='preworkout')return Math.floor(150*Math.pow(1.45,(state.stamina_capacity-1000)/250));if(a==='boost')return state.tap_power*350;return 0}
 function switchView(v){
@@ -181,18 +216,20 @@ function switchView(v){
     document.querySelector(`[data-view="${x}"]`).classList.toggle('active',x===v);
   });
   haptic('light');
-  if(v==='crew')loadCommunityLB();
+  if(v==='crew'){loadCommunityLB();updateCard();}
   if(v==='streak')renderStreak();
 }
 function tap(){
   const e=staminaNow();if(e<1)return;
   haptic('medium');
   const m=multiplier();const g=state.tap_power*m;
-  state.points+=g;state.total_mined+=g;state.stamina=e-1;state.last_stamina=Date.now();
+  state.points+=g;state.total_mined+=g;if(!isPump()){state.stamina=e-1;state.last_stamina=Date.now();}
   if(state.total_mined>state.best)state.best=state.total_mined;
   if(!state._taps)state._taps=[];state._taps.push(Date.now());state._taps=state._taps.filter(t=>Date.now()-t<4000);
   if(state._taps.length>=12&&Date.now()>=state.frenzy_until)state.frenzy_until=Date.now()+30000;
-  document.getElementById('tapper').classList.toggle('frenzy',Date.now()<state.frenzy_until||Date.now()<state.boost_until);
+  const btn=document.getElementById('tapper');
+  btn.classList.toggle('frenzy',Date.now()<state.frenzy_until||Date.now()<state.boost_until);
+  btn.classList.toggle('pump',isPump());
   save();render();
 }
 function action(a){const c=upgradeCost(a);if(state.points<c)return;state.points-=c;if(a==='whey')state.tap_power++;if(a==='creatine')state.passive_rate+=25;if(a==='preworkout')state.stamina_capacity+=250;if(a==='boost')state.boost_until=Date.now()+600000;save();render();}
@@ -213,6 +250,20 @@ function claimStreak(){
   save();renderStreak();render();
   alert(`Day ${state.streak} claimed! +${reward.toLocaleString()} BP`);
 }
+function joinSquad(){
+  const name=(document.getElementById('squadInput').value||'').trim();
+  if(!name){alert('Enter a squad name');return;}
+  state.squad=name;save();updateCard();
+  alert('Joined squad: '+name);
+}
+function updateCard(){
+  const r=rankFor(state.total_mined);
+  document.getElementById('cardEmoji').textContent=r.emoji;
+  document.getElementById('cardRank').textContent=r.name;
+  document.getElementById('cardScore').textContent=(state.best||state.total_mined).toLocaleString()+' BP';
+  document.getElementById('cardSquad').textContent=state.squad||'None';
+  document.getElementById('squadInfo').textContent=state.squad?`You're in ${state.squad}. Squad multiplier active when members combine BP.`:'Not in a squad yet.';
+}
 function renderStreak(){
   const days=document.getElementById('streakDays');
   const now=Date.now();
@@ -231,6 +282,7 @@ function render(){
   document.getElementById('rankName').textContent='Rank: '+r.name;
   document.getElementById('rankProgress').textContent=state.total_mined.toLocaleString()+' / '+(n?n.min.toLocaleString():'MAX');
   document.getElementById('rankBar').style.width=(n?Math.min(100,((state.total_mined-r.min)/(n.min-r.min))*100):100)+'%';
+  document.getElementById('tapper').textContent=r.emoji;
   const e=staminaNow();
   document.getElementById('staminaText').textContent=Math.floor(e).toLocaleString()+' / '+state.stamina_capacity.toLocaleString();
   document.getElementById('staminaBar').style.width=(e/state.stamina_capacity*100)+'%';
@@ -243,13 +295,16 @@ function render(){
   document.getElementById('btnClaim').textContent='Claim '+eggs.toLocaleString()+' BP';
   document.getElementById('btnClaim').disabled=eggs<1;
   document.getElementById('vaultBadge').classList.toggle('hidden',pct<75);
+  document.getElementById('pumpBanner').classList.toggle('active',isPump());
   const ups=[{a:'whey',emoji:'🌽',name:'Whey Corn',sub:'More power. Every single rep.',level:state.tap_power},{a:'creatine',emoji:'🥚',name:'Creatine Coop',sub:'Gains while you’re off the grid.',level:Math.floor((state.passive_rate-75)/25)+1},{a:'preworkout',emoji:'⚡',name:'Pre-Workout Cluck',sub:'Bigger tank. Faster recovery.',level:Math.floor((state.stamina_capacity-1000)/250)+1}];
   document.getElementById('upgrades').innerHTML=ups.map(u=>{const c=upgradeCost(u.a);return`<div class="upgrade"><div style="font-size:28px;width:40px;text-align:center">${u.emoji}</div><div style="flex:1"><h3 style="font-size:15px">${u.name} <span style="color:var(--gold);font-size:12px">LVL ${u.level}</span></h3><p style="font-size:12px;color:var(--muted)">${u.sub}</p></div><button class="cost-btn" ${state.points<c?'disabled':''} onclick="action('${u.a}')">${c.toLocaleString()} BP</button></div>`}).join('')+`<div class="upgrade"><div style="font-size:28px;width:40px;text-align:center">🔥</div><div style="flex:1"><h3 style="font-size:15px">Mega Flex ${Date.now()<state.boost_until?'<span style="color:var(--gold);font-size:12px">ACTIVE</span>':''}</h3><p style="font-size:12px;color:var(--muted)">Double earnings for ten minutes.</p></div><button class="cost-btn" ${state.points<upgradeCost('boost')||Date.now()<state.boost_until?'disabled':''} onclick="action('boost')">${upgradeCost('boost').toLocaleString()} BP</button></div>`;
+  updateCard();
 }
-function shareScore(){
-  const text=`🐓 I just hit ${(state.best||state.total_mined).toLocaleString()} BP on Beastly Point Tap! Too Jacked To Rug.`;
+function shareCard(){
+  const r=rankFor(state.total_mined);
+  const text=`🐓 ${state.display_name||'Beast'} — ${r.name} | ${(state.best||state.total_mined).toLocaleString()} BP\nSquad: ${state.squad||'Solo'}\nToo Jacked To Rug. Play: t.me/chickenbeastbot`;
   if(navigator.share)navigator.share({text}).catch(()=>{});
-  else navigator.clipboard.writeText(text).then(()=>alert('Copied!'));
+  else navigator.clipboard.writeText(text).then(()=>alert('Gym Card copied!'));
 }
 if(state.display_name){enter();}else{
   try{const tg=window.Telegram?.WebApp;if(tg){tg.ready();const u=tg.initDataUnsafe?.user;if(u){document.getElementById('nameInput').value=u.first_name||u.username||'';}}}catch{}
