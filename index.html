@@ -65,6 +65,7 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
 .gym-card .rank{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold)}
 .pump-banner{background:linear-gradient(90deg,#ff2d55,#ff6b00);color:#fff;text-align:center;padding:8px;font-weight:700;border-radius:12px;margin-bottom:12px;display:none}
 .pump-banner.active{display:block}
+canvas#gymCanvas{display:none}
 </style>
 </head>
 <body>
@@ -88,7 +89,7 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
       <button class="tapper" id="tapper" onclick="tap()">🐓</button>
     </div>
     <div class="card">
-      <div class="meter-row"><strong id="rankName">Rank: Scrawny Chick</strong><span id="rankProgress">0 / 10,000</span></div>
+      <div class="meter-row"><strong id="rankName">Rank: Scrawny Chick</strong><span id="rankProgress">0 / 1,000</span></div>
       <div class="bar"><i id="rankBar" style="width:0%"></i></div>
       <div class="meter-row"><strong>Stamina</strong><span id="staminaText">1000 / 1000</span></div>
       <div class="bar"><i id="staminaBar" style="width:100%"></i></div>
@@ -126,7 +127,8 @@ h1.brand span{color:var(--gold);background:linear-gradient(180deg,#fff5c2,var(--
         <div style="font-size:13px;color:var(--muted);margin:6px 0" id="cardScore">0 BP</div>
         <div style="font-size:12px">Squad: <span id="cardSquad">None</span></div>
       </div>
-      <button class="share-btn" onclick="shareCard()">Share Gym Card</button>
+      <canvas id="gymCanvas" width="600" height="350"></canvas>
+      <button class="share-btn" onclick="shareGymCard()">Share Gym Card</button>
       <div style="margin-top:16px">
         <div class="section-title" style="margin-top:0">SQUADS</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:8px">Join or create a squad. Combined BP unlocks multipliers.</p>
@@ -155,13 +157,29 @@ window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
 const supabase = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase)
   ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY) : null;
 
-const RANKS=[
-  {name:'Scrawny Chick',min:0,emoji:'🐣'},
-  {name:'Barnyard Broiler',min:10000,emoji:'🐓'},
-  {name:'Free-Range Chad',min:100000,emoji:'🐓'},
-  {name:'Giga-Rooster',min:1000000,emoji:'🐓'},
-  {name:'Apex Beast',min:10000000,emoji:'🐓'}
+const EVOLUTION_TIERS = [
+  { tier: 1, name: "Scrawny Chick", bpRequired: 0, multiplier: 1.0, badgeColor: "#8E8E93", emoji: "🐣", quote: "Skipped leg day... every day." },
+  { tier: 2, name: "Feathered Gym Bro", bpRequired: 1000, multiplier: 1.25, badgeColor: "#30D158", emoji: "🐥", quote: "Pre-workout running through the veins." },
+  { tier: 3, name: "Alpha Featherweight", bpRequired: 10000, multiplier: 1.5, badgeColor: "#0A84FF", emoji: "🐔", quote: "Strict 10,000 BP/day regimen." },
+  { tier: 4, name: "Neon Giga-Rooster", bpRequired: 50000, multiplier: 2.0, badgeColor: "#BF5AF2", emoji: "🐓", quote: "Built different. Unstoppable pump." },
+  { tier: 5, name: "APEX BEAST", bpRequired: 250000, multiplier: 3.5, badgeColor: "#CCFF00", emoji: "🦖", quote: "CHICKENBEAST GOD MODE." }
 ];
+
+function getTierInfo(bp) {
+  let currentTier = EVOLUTION_TIERS[0];
+  let nextTier = null;
+  for (let i = 0; i < EVOLUTION_TIERS.length; i++) {
+    if (bp >= EVOLUTION_TIERS[i].bpRequired) {
+      currentTier = EVOLUTION_TIERS[i];
+      nextTier = EVOLUTION_TIERS[i + 1] || null;
+    }
+  }
+  const progressToNext = nextTier
+    ? Math.min(100, Math.floor(((bp - currentTier.bpRequired) / (nextTier.bpRequired - currentTier.bpRequired)) * 100))
+    : 100;
+  return { currentTier, nextTier, progressToNext };
+}
+
 const STREAK_REWARDS=[500,1000,1500,2500,4000,6000,10000];
 let state={points:0,total_mined:0,tap_power:1,stamina:1000,stamina_capacity:1000,last_stamina:Date.now(),passive_rate:75,last_incubation:Date.now(),frenzy_until:0,boost_until:0,display_name:'',tg_id:null,best:0,leaderboard_opt_in:true,streak:0,last_streak_claim:0,squad:''};
 let pumpUntil=0;
@@ -174,7 +192,6 @@ function isPump(){return Date.now()<pumpUntil;}
 function checkPump(){
   const now=new Date();
   const hour=now.getUTCHours();
-  // Global Pump window: 18:00-18:05 UTC daily
   if(hour===18 && now.getUTCMinutes()<5){
     pumpUntil=Date.now()+5*60*1000;
   }
@@ -207,8 +224,13 @@ function logout(){state.display_name='';state.tg_id=null;save();location.reload(
 function toggleOptIn(on){state.leaderboard_opt_in=on;save();}
 function staminaNow(){return isPump()?state.stamina_capacity:Math.min(state.stamina_capacity,state.stamina+(Date.now()-state.last_stamina)/1000*(state.stamina_capacity/1800));}
 function incubationNow(){return Math.min(state.passive_rate*8,Math.floor((Date.now()-state.last_incubation)/3600000*state.passive_rate))}
-function multiplier(){const n=Date.now();let m=(n<state.frenzy_until?2:1)*(n<state.boost_until?2:1);if(isPump())m*=5;return m;}
-function rankFor(t){let r=RANKS[0];for(const x of RANKS)if(t>=x.min)r=x;return r}
+function multiplier(){
+  const n=Date.now();
+  const tier = getTierInfo(state.total_mined).currentTier;
+  let m = tier.multiplier * (n<state.frenzy_until?2:1)*(n<state.boost_until?2:1);
+  if(isPump())m*=5;
+  return m;
+}
 function upgradeCost(a){if(a==='whey')return Math.floor(50*Math.pow(1.35,state.tap_power-1));if(a==='creatine')return Math.floor(200*Math.pow(1.4,(state.passive_rate-75)/25));if(a==='preworkout')return Math.floor(150*Math.pow(1.45,(state.stamina_capacity-1000)/250));if(a==='boost')return state.tap_power*350;return 0}
 function switchView(v){
   ['gym','stations','vault','streak','crew'].forEach(x=>{
@@ -257,12 +279,113 @@ function joinSquad(){
   alert('Joined squad: '+name);
 }
 function updateCard(){
-  const r=rankFor(state.total_mined);
+  const tierInfo = getTierInfo(state.total_mined);
+  const r = tierInfo.currentTier;
   document.getElementById('cardEmoji').textContent=r.emoji;
   document.getElementById('cardRank').textContent=r.name;
   document.getElementById('cardScore').textContent=(state.best||state.total_mined).toLocaleString()+' BP';
   document.getElementById('cardSquad').textContent=state.squad||'None';
   document.getElementById('squadInfo').textContent=state.squad?`You're in ${state.squad}. Squad multiplier active when members combine BP.`:'Not in a squad yet.';
+}
+function generateGymCardCanvas(canvas, player) {
+  const ctx = canvas.getContext('2d');
+  const w = 600, h = 350;
+  canvas.width = w; canvas.height = h;
+  const bg = ctx.createLinearGradient(0, 0, w, h);
+  bg.addColorStop(0, '#0F120A');
+  bg.addColorStop(1, '#050703');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = '#CCFF00';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(10, 10, w - 20, h - 20);
+  ctx.strokeStyle = 'rgba(204, 255, 0, 0.15)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(16, 16, w - 32, h - 32);
+  ctx.fillStyle = '#CCFF00';
+  ctx.font = '900 22px system-ui, sans-serif';
+  ctx.fillText('CHICKENBEAST GYM', 35, 48);
+  ctx.fillStyle = '#8E8E93';
+  ctx.font = '600 11px monospace';
+  ctx.fillText('VERIFIED MEMBER CARD // TG-NATIVE', 35, 66);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(85, 160, 45, 0, Math.PI * 2);
+  ctx.fillStyle = '#1A1D13';
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = player.tierInfo.badgeColor || '#CCFF00';
+  ctx.stroke();
+  ctx.font = '40px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(player.tierInfo.emoji, 85, 160);
+  ctx.restore();
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 24px system-ui, sans-serif';
+  ctx.fillText(player.username || 'GymBro', 150, 145);
+  ctx.fillStyle = player.tierInfo.badgeColor || '#CCFF00';
+  ctx.font = 'bold 14px monospace';
+  ctx.fillText(`[ TIER ${player.tierInfo.tier}: ${player.tierInfo.name.toUpperCase()} ]`, 150, 170);
+  ctx.strokeStyle = '#222818';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(35, 220);
+  ctx.lineTo(w - 35, 220);
+  ctx.stroke();
+  const stats = [
+    { label: 'TOTAL BP', value: player.bp.toLocaleString() },
+    { label: 'STREAK', value: `${player.streakDays || 1} DAYS` },
+    { label: 'SQUAD', value: player.squadName || 'SOLO' },
+    { label: 'RANK', value: `#${player.globalRank || '---'}` }
+  ];
+  const colWidth = (w - 70) / 4;
+  stats.forEach((stat, idx) => {
+    const x = 35 + (idx * colWidth);
+    ctx.fillStyle = '#8E8E93';
+    ctx.font = '10px monospace';
+    ctx.fillText(stat.label, x, 250);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 16px system-ui, sans-serif';
+    ctx.fillText(stat.value, x, 275);
+  });
+  ctx.fillStyle = 'rgba(204, 255, 0, 0.8)';
+  ctx.font = 'italic 11px system-ui, sans-serif';
+  ctx.fillText(`"${player.tierInfo.quote}"`, 35, 318);
+  ctx.fillStyle = '#555';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('PLAY: t.me/chickenbeastbot', w - 35, 318);
+}
+async function shareGymCard() {
+  const tierInfo = getTierInfo(state.total_mined);
+  const player = {
+    username: state.display_name || 'Beast',
+    bp: state.best || state.total_mined,
+    streakDays: state.streak,
+    squadName: state.squad,
+    globalRank: '---',
+    tierInfo: tierInfo.currentTier
+  };
+  const canvas = document.getElementById('gymCanvas');
+  generateGymCardCanvas(canvas, player);
+  canvas.toBlob(async (blob) => {
+    if (!blob) return;
+    const file = new File([blob], `${player.username}-gym-card.png`, { type: 'image/png' });
+    const shareText = `💪 I just reached Tier ${player.tierInfo.tier} (${player.tierInfo.name}) on Chickenbeast! Current BP: ${player.bp.toLocaleString()}.\n\nJoin: t.me/chickenbeastbot`;
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ title: 'Chickenbeast Gym Card', text: shareText, files: [file] });
+        return;
+      } catch (err) {}
+    }
+    const link = document.createElement('a');
+    link.download = `${player.username}-gym-card.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }, 'image/png');
 }
 function renderStreak(){
   const days=document.getElementById('streakDays');
@@ -278,10 +401,12 @@ function renderStreak(){
   document.getElementById('btnStreak').disabled=claimedToday;
 }
 function render(){
-  const r=rankFor(state.total_mined);const n=RANKS.find(x=>x.min>state.total_mined);
+  const tierInfo = getTierInfo(state.total_mined);
+  const r = tierInfo.currentTier;
+  const n = tierInfo.nextTier;
   document.getElementById('rankName').textContent='Rank: '+r.name;
-  document.getElementById('rankProgress').textContent=state.total_mined.toLocaleString()+' / '+(n?n.min.toLocaleString():'MAX');
-  document.getElementById('rankBar').style.width=(n?Math.min(100,((state.total_mined-r.min)/(n.min-r.min))*100):100)+'%';
+  document.getElementById('rankProgress').textContent=state.total_mined.toLocaleString()+' / '+(n?n.bpRequired.toLocaleString():'MAX');
+  document.getElementById('rankBar').style.width=tierInfo.progressToNext+'%';
   document.getElementById('tapper').textContent=r.emoji;
   const e=staminaNow();
   document.getElementById('staminaText').textContent=Math.floor(e).toLocaleString()+' / '+state.stamina_capacity.toLocaleString();
@@ -299,12 +424,6 @@ function render(){
   const ups=[{a:'whey',emoji:'🌽',name:'Whey Corn',sub:'More power. Every single rep.',level:state.tap_power},{a:'creatine',emoji:'🥚',name:'Creatine Coop',sub:'Gains while you’re off the grid.',level:Math.floor((state.passive_rate-75)/25)+1},{a:'preworkout',emoji:'⚡',name:'Pre-Workout Cluck',sub:'Bigger tank. Faster recovery.',level:Math.floor((state.stamina_capacity-1000)/250)+1}];
   document.getElementById('upgrades').innerHTML=ups.map(u=>{const c=upgradeCost(u.a);return`<div class="upgrade"><div style="font-size:28px;width:40px;text-align:center">${u.emoji}</div><div style="flex:1"><h3 style="font-size:15px">${u.name} <span style="color:var(--gold);font-size:12px">LVL ${u.level}</span></h3><p style="font-size:12px;color:var(--muted)">${u.sub}</p></div><button class="cost-btn" ${state.points<c?'disabled':''} onclick="action('${u.a}')">${c.toLocaleString()} BP</button></div>`}).join('')+`<div class="upgrade"><div style="font-size:28px;width:40px;text-align:center">🔥</div><div style="flex:1"><h3 style="font-size:15px">Mega Flex ${Date.now()<state.boost_until?'<span style="color:var(--gold);font-size:12px">ACTIVE</span>':''}</h3><p style="font-size:12px;color:var(--muted)">Double earnings for ten minutes.</p></div><button class="cost-btn" ${state.points<upgradeCost('boost')||Date.now()<state.boost_until?'disabled':''} onclick="action('boost')">${upgradeCost('boost').toLocaleString()} BP</button></div>`;
   updateCard();
-}
-function shareCard(){
-  const r=rankFor(state.total_mined);
-  const text=`🐓 ${state.display_name||'Beast'} — ${r.name} | ${(state.best||state.total_mined).toLocaleString()} BP\nSquad: ${state.squad||'Solo'}\nToo Jacked To Rug. Play: t.me/chickenbeastbot`;
-  if(navigator.share)navigator.share({text}).catch(()=>{});
-  else navigator.clipboard.writeText(text).then(()=>alert('Gym Card copied!'));
 }
 if(state.display_name){enter();}else{
   try{const tg=window.Telegram?.WebApp;if(tg){tg.ready();const u=tg.initDataUnsafe?.user;if(u){document.getElementById('nameInput').value=u.first_name||u.username||'';}}}catch{}
