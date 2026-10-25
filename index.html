@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Chicken Beast</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -52,6 +53,9 @@ input,button{font-family:inherit}
 .streak-box{width:32px;height:32px;border:1px solid var(--border);border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:700}
 .streak-box.done{background:var(--gold);color:#111}
 .contest-banner{background:linear-gradient(90deg,#ff8c00,#f5c518);color:#111;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;margin-bottom:12px;text-align:center}
+.pump-banner{background:linear-gradient(90deg,#ff0044,#ff8c00);color:#fff;padding:12px 14px;border-radius:10px;font-size:13px;font-weight:800;margin-bottom:12px;text-align:center;letter-spacing:0.5px}
+.lb-row{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:13px}
+.lb-rank{font-weight:800;color:var(--gold);width:28px}
 canvas#gymCanvas{display:none}
 </style>
 </head>
@@ -77,6 +81,7 @@ canvas#gymCanvas{display:none}
   </div>
   <div id="view-home" class="view">
     <div class="contest-banner" onclick="switchView('missions')">🏆 MEME CONTEST LIVE — $60 pool · Tap for rules</div>
+    <div class="pump-banner" id="pumpBanner">⚡ GLOBAL PUMP — calculating...</div>
     <div class="chicken-stage">
       <div class="pixel" style="color:var(--orange);margin-bottom:8px" id="formLabel">HATCHLING</div>
       <div class="sprite" id="chickenSprite">🐣</div>
@@ -114,8 +119,8 @@ canvas#gymCanvas{display:none}
     <div id="missions"></div>
   </div>
   <div id="view-leader" class="view hidden">
-    <div class="pixel" style="margin-bottom:12px">Leaderboard</div>
-    <div id="lb" style="font-size:13px;color:var(--muted)">Local only. Cloud coming.</div>
+    <div class="pixel" style="margin-bottom:12px">Global Leaderboard</div>
+    <div id="lb" style="font-size:13px;color:var(--muted)">Loading...</div>
   </div>
   <div id="view-profile" class="view hidden">
     <div class="chicken-stage">
@@ -143,6 +148,15 @@ canvas#gymCanvas{display:none}
   <button data-v="profile" onclick="switchView('profile')"><span class="icon">👤</span>PROFILE</button>
 </div>
 <script>
+const SUPABASE_URL = 'https://c--4bfcb867-fe62-4180-b938-44eefcf4e108-prod.lovable.cloud';
+const SUPABASE_KEY = 'sb_publishable_7I0Kb5f-jIXhSi4cDV9J2w_iWHkZJMM';
+let sb = null;
+try {
+  if (window.supabase && window.supabase.createClient) {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+} catch (e) { console.log('supabase init failed', e); }
+
 const TIERS = [
   {name:'Hatchling',min:0,emoji:'🐣',color:'#8E8E93'},
   {name:'Feathered Gym Bro',min:500,emoji:'🐥',color:'#30D158'},
@@ -151,15 +165,88 @@ const TIERS = [
   {name:'APEX BEAST',min:100000,emoji:'🦖',color:'#CCFF00'}
 ];
 function getTier(bp){let t=TIERS[0];for(const x of TIERS)if(bp>=x.min)t=x;return t;}
-let state={xp:0,level:1,energy:100,maxEnergy:100,lastEnergy:Date.now(),grain:0,totalTaps:0,todayTaps:0,lastDay:new Date().toDateString(),streak:0,lastClaim:0,bp:0,name:'',squad:'',upgrades:{pecks:0,lungs:0,digest:0},inviteCode:''};
+
+let state={xp:0,level:1,energy:100,maxEnergy:100,lastEnergy:Date.now(),grain:0,totalTaps:0,todayTaps:0,lastDay:new Date().toDateString(),streak:0,lastClaim:0,bp:0,name:'',squad:'',upgrades:{pecks:0,lungs:0,digest:0},inviteCode:'',playerId:''};
 function load(){try{const s=localStorage.getItem('cb_v2');if(s)Object.assign(state,JSON.parse(s));}catch{}}
-function save(){localStorage.setItem('cb_v2',JSON.stringify(state));}
+function save(){localStorage.setItem('cb_v2',JSON.stringify(state)); syncProfile();}
 load();
 if(!state.inviteCode){state.inviteCode=Math.random().toString(36).slice(2,8);save();}
+if(!state.playerId){
+  try{
+    const tg=window.Telegram?.WebApp;
+    const u=tg?.initDataUnsafe?.user;
+    state.playerId = u?.id ? String(u.id) : 'local_'+Math.random().toString(36).slice(2,10);
+  }catch{ state.playerId='local_'+Math.random().toString(36).slice(2,10); }
+  save();
+}
 function today(){return new Date().toDateString();}
 if(state.lastDay!==today()){state.todayTaps=0;state.lastDay=today();save();}
 function energyNow(){const regen=Math.floor((Date.now()-state.lastEnergy)/3000);return Math.min(state.maxEnergy,state.energy+regen);}
 function xpNeeded(l){return Math.floor(20*Math.pow(1.3,l-1));}
+
+async function syncProfile(){
+  if(!sb || !state.playerId || !state.name) return;
+  try{
+    await sb.from('profiles').upsert({
+      id: state.playerId,
+      name: state.name,
+      bp: state.bp,
+      streak: state.streak,
+      level: state.level,
+      squad: state.squad || null,
+      last_claim: state.lastClaim || null,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+  }catch(e){ console.log('sync failed', e); }
+}
+
+async function loadLeaderboard(){
+  const el=document.getElementById('lb');
+  if(!sb){ el.textContent='Cloud offline. Local only.'; return; }
+  el.textContent='Loading...';
+  try{
+    const { data, error } = await sb.from('profiles').select('name,bp,streak,squad').order('bp',{ascending:false}).limit(30);
+    if(error) throw error;
+    if(!data || !data.length){ el.innerHTML='<div style="color:var(--muted)">No beasts yet. Be the first!</div>'; return; }
+    el.innerHTML = data.map((p,i)=>`<div class="lb-row"><span class="lb-rank">${i+1}</span><span>${(p.name||'Beast').slice(0,16)}</span><span>${(p.bp||0).toLocaleString()} BP</span></div>`).join('');
+  }catch(e){
+    el.innerHTML='<div style="color:#ff6b6b">Leaderboard unavailable. Check table & RLS.</div>';
+    console.log(e);
+  }
+}
+
+function getNextPump(){
+  // Daily pump at 18:00 UTC for 5 minutes
+  const now=new Date();
+  const target=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),18,0,0));
+  if(now.getTime() > target.getTime() + 5*60*1000){
+    target.setUTCDate(target.getUTCDate()+1);
+  }
+  return target;
+}
+function updatePumpBanner(){
+  const el=document.getElementById('pumpBanner');
+  if(!el) return;
+  const next=getNextPump();
+  const now=Date.now();
+  const start=next.getTime();
+  const end=start+5*60*1000;
+  if(now>=start && now<=end){
+    const left=Math.max(0,Math.floor((end-now)/1000));
+    el.textContent=`🔥 GLOBAL PUMP LIVE — ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')} left · 5× BP`;
+    el.style.background='linear-gradient(90deg,#00cc66,#39ff14)';
+    el.style.color='#111';
+  }else{
+    const diff=Math.max(0,start-now);
+    const h=Math.floor(diff/3600000);
+    const m=Math.floor((diff%3600000)/60000);
+    const s=Math.floor((diff%60000)/1000);
+    el.textContent=`⚡ GLOBAL PUMP in ${h}h ${m}m ${s}s · 18:00 UTC · 5× BP`;
+    el.style.background='linear-gradient(90deg,#ff0044,#ff8c00)';
+    el.style.color='#fff';
+  }
+}
+
 function signup(){
   let name=document.getElementById('nameInput').value.trim();
   try{const tg=window.Telegram?.WebApp;if(tg){tg.ready();tg.expand();const u=tg.initDataUnsafe?.user;if(u)name=u.first_name||u.username||name;}}catch{}
@@ -169,14 +256,17 @@ function signup(){
 function enter(){
   document.getElementById('landing').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  setInterval(()=>{state.energy=energyNow();state.lastEnergy=Date.now();render();},1000);
+  setInterval(()=>{state.energy=energyNow();state.lastEnergy=Date.now();render();updatePumpBanner();},1000);
+  syncProfile();
   render();
 }
 function tap(){
   if(energyNow()<1)return;
   try{window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('medium');}catch{}
+  const pumping = (()=>{const n=getNextPump();const t=Date.now();return t>=n.getTime() && t<=n.getTime()+5*60*1000;})();
   state.energy=energyNow()-1;state.lastEnergy=Date.now();
-  const gain=1+state.upgrades.pecks;
+  const mult = pumping ? 5 : 1;
+  const gain=(1+state.upgrades.pecks)*mult;
   state.xp+=gain;state.bp+=gain;state.grain+=1;state.totalTaps++;state.todayTaps++;
   while(state.xp>=xpNeeded(state.level)){state.xp-=xpNeeded(state.level);state.level++;}
   save();render();
@@ -204,6 +294,7 @@ function switchView(v){
     document.getElementById('view-'+x).classList.toggle('hidden',x!==v);
     document.querySelector(`[data-v="${x}"]`).classList.toggle('active',x===v);
   });
+  if(v==='leader') loadLeaderboard();
   render();
 }
 function generateCard(canvas){
@@ -269,6 +360,7 @@ function render(){
     {name:'Show Up',prog:claimed?1:0,goal:1,reward:'20 XP'},
     {name:'Meme Contest Entry',prog:0,goal:5,reward:'Points toward $60 pool'}
   ].map(m=>`<div class="mission"><h4>${m.name}</h4><div class="progress">${Math.min(m.prog,m.goal)}/${m.goal} · ${m.reward}</div><div class="bar"><i style="width:${Math.min(100,m.prog/m.goal*100)}%"></i></div></div>`).join('');
+  updatePumpBanner();
 }
 function buy(k,cost){
   if(state.grain<cost)return;
