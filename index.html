@@ -51,6 +51,7 @@ input,button{font-family:inherit}
 .streak-row{display:flex;gap:6px;justify-content:center;margin:10px 0}
 .streak-box{width:32px;height:32px;border:1px solid var(--border);border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:700}
 .streak-box.done{background:var(--gold);color:#111}
+.contest-banner{background:linear-gradient(90deg,#ff8c00,#f5c518);color:#111;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;margin-bottom:12px;text-align:center}
 canvas#gymCanvas{display:none}
 </style>
 </head>
@@ -75,6 +76,7 @@ canvas#gymCanvas{display:none}
     <div class="grain">🥚 <span id="grainDisplay">0</span></div>
   </div>
   <div id="view-home" class="view">
+    <div class="contest-banner" onclick="switchView('missions')">🏆 MEME CONTEST LIVE — $60 pool · Tap for rules</div>
     <div class="chicken-stage">
       <div class="pixel" style="color:var(--orange);margin-bottom:8px" id="formLabel">HATCHLING</div>
       <div class="sprite" id="chickenSprite">🐣</div>
@@ -107,7 +109,8 @@ canvas#gymCanvas{display:none}
     <div id="upgrades"></div>
   </div>
   <div id="view-missions" class="view hidden">
-    <div class="pixel" style="margin-bottom:12px">Missions</div>
+    <div class="pixel" style="margin-bottom:12px">Missions & Contest</div>
+    <div class="contest-banner" style="font-size:12px">$60 prize pool · Oct 19–24 · Max 5/day · Quality over quantity</div>
     <div id="missions"></div>
   </div>
   <div id="view-leader" class="view hidden">
@@ -127,6 +130,8 @@ canvas#gymCanvas{display:none}
       <input id="squadInput" placeholder="Squad name" style="width:100%;padding:10px;margin:8px 0;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px">
       <button class="cta" onclick="joinSquad()">Join / Create</button>
       <div id="squadInfo" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
+      <button class="daily-btn" style="margin-top:8px" onclick="copyInvite()">Copy Invite Link</button>
+      <div id="inviteLink" style="font-size:11px;color:var(--muted);margin-top:6px;word-break:break-all"></div>
     </div>
   </div>
 </div>
@@ -146,10 +151,11 @@ const TIERS = [
   {name:'APEX BEAST',min:100000,emoji:'🦖',color:'#CCFF00'}
 ];
 function getTier(bp){let t=TIERS[0];for(const x of TIERS)if(bp>=x.min)t=x;return t;}
-let state={xp:0,level:1,energy:100,maxEnergy:100,lastEnergy:Date.now(),grain:0,totalTaps:0,todayTaps:0,lastDay:new Date().toDateString(),streak:0,lastClaim:0,bp:0,name:'',squad:'',upgrades:{pecks:0,lungs:0,digest:0}};
+let state={xp:0,level:1,energy:100,maxEnergy:100,lastEnergy:Date.now(),grain:0,totalTaps:0,todayTaps:0,lastDay:new Date().toDateString(),streak:0,lastClaim:0,bp:0,name:'',squad:'',upgrades:{pecks:0,lungs:0,digest:0},inviteCode:''};
 function load(){try{const s=localStorage.getItem('cb_v2');if(s)Object.assign(state,JSON.parse(s));}catch{}}
 function save(){localStorage.setItem('cb_v2',JSON.stringify(state));}
 load();
+if(!state.inviteCode){state.inviteCode=Math.random().toString(36).slice(2,8);save();}
 function today(){return new Date().toDateString();}
 if(state.lastDay!==today()){state.todayTaps=0;state.lastDay=today();save();}
 function energyNow(){const regen=Math.floor((Date.now()-state.lastEnergy)/3000);return Math.min(state.maxEnergy,state.energy+regen);}
@@ -187,6 +193,11 @@ function joinSquad(){
   const n=document.getElementById('squadInput').value.trim();
   if(!n)return;
   state.squad=n;save();render();
+}
+function copyInvite(){
+  const link='https://t.me/chickenbeastbot?start=ref_'+state.inviteCode;
+  navigator.clipboard?.writeText(link).then(()=>alert('Invite link copied'));
+  document.getElementById('inviteLink').textContent=link;
 }
 function switchView(v){
   ['home','train','missions','leader','profile'].forEach(x=>{
@@ -246,7 +257,7 @@ function render(){
   const claimed=Date.now()-state.lastClaim<86400000;
   document.getElementById('dailyBtn').textContent=claimed?'CLAIMED':'CLAIM DAILY REWARD';
   document.getElementById('dailyBtn').disabled=claimed;
-  document.getElementById('squadInfo').textContent=state.squad?'In squad: '+state.squad:'Not in a squad';
+  document.getElementById('squadInfo').textContent=state.squad?'In squad: '+state.squad+' · Invite code: '+state.inviteCode:'Not in a squad · Code: '+state.inviteCode;
   document.getElementById('upgrades').innerHTML=[
     {k:'pecks',name:'Iron Pecks',desc:'+1 XP/tap',cost:15+state.upgrades.pecks*10},
     {k:'lungs',name:'Big Lungs',desc:'+20 max energy',cost:20+state.upgrades.lungs*12},
@@ -255,7 +266,8 @@ function render(){
   document.getElementById('missions').innerHTML=[
     {name:'Morning Reps',prog:state.todayTaps,goal:50,reward:'40 XP'},
     {name:'Gear Up',prog:state.upgrades.pecks+state.upgrades.lungs+state.upgrades.digest,goal:1,reward:'10 Grain'},
-    {name:'Show Up',prog:claimed?1:0,goal:1,reward:'20 XP'}
+    {name:'Show Up',prog:claimed?1:0,goal:1,reward:'20 XP'},
+    {name:'Meme Contest Entry',prog:0,goal:5,reward:'Points toward $60 pool'}
   ].map(m=>`<div class="mission"><h4>${m.name}</h4><div class="progress">${Math.min(m.prog,m.goal)}/${m.goal} · ${m.reward}</div><div class="bar"><i style="width:${Math.min(100,m.prog/m.goal*100)}%"></i></div></div>`).join('');
 }
 function buy(k,cost){
